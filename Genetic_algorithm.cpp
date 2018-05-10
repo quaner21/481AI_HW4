@@ -11,8 +11,8 @@ using namespace std;
 // Define some constants/parameter settings
 const float PI = 3.141593;
 const float XOVER = 0.8;
-const float MUTATION = 0.01;
-const int POPUSIZE = 300;
+const float MUTATION = 0.02;
+const int POPUSIZE = 500;
 
 // Global Variable
 vector<char*> population;    
@@ -25,15 +25,15 @@ void printString(char* str) {
 	cout << endl;
 }
 
-double fitnessFunc(char* bitString) {
-	double bitValue = 0.0;
+float fitnessFunc(char* bitString) {
+	float bitValue = 0.0;
 	for (int i = 0; i < 22; i++) {
 		//cout << bitString[i];
 		bitValue += (bitString[21 - i] - '0') * pow(2.0, i); // convert bit to its base 2 value
 	}
 	//cout << endl;
 	//cout << bitValue << endl;
-	double value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
+	float value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
 	//cout << value << endl;
 	return (sin(10*PI*value)*value + 1);                     // fitness value -> goal: find the max
 }
@@ -111,9 +111,14 @@ void mutation(){
 	for (int i = 0; i < POPUSIZE; i++){
 		for (int j = 0; j < 22; j++){
 			int rateM = rand() % 100;
-			cout << "mutation rate: " << rateM << endl;
+			//cout << "mutation rate: " << rateM << endl;
 			if (rateM < MUTATION * 100){
-				population[i][j] = 1 - population[i][j];  // flip the bit
+				if (population[i][j] == '0'){        // flip the bit
+					population[i][j]++;
+				}
+				else {
+					population[i][j]--;
+				}  
 			}
 		}
 	}
