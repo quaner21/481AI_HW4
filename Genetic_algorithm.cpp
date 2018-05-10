@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <stdlib.h>
 #include <time.h> 
 
 using namespace std;
@@ -48,7 +49,6 @@ void crossOver(char* string1, char* string2) {
 	float fitVtempStr1 = fitnessFunc(tempStr1);
 	float fitVtempStr2 = fitnessFunc(tempStr2);
 
-	srand(time(NULL));
 	int rate = rand() % 10;
 	cout << "crossover rate: " << rate << endl;
 	if (rate > 1) {                                         // 80% chance to crossover
