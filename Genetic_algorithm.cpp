@@ -2,6 +2,7 @@
 #include <vector>
 #include <string>
 #include <cmath>
+#include <iomanip>
 #include <stdlib.h>
 #include <time.h> 
 
@@ -13,6 +14,10 @@ const float XOVER = 0.8;
 const float MUTATION = 0.01;
 const int POPUSIZE = 300;
 
+// Global Variable
+vector<char*> population;    
+
+// Functions
 void printString(char* str) {
 	for (int i = 0; i < 22; i++) {                          // generate two children as copies of parents
 		cout << str[i];
@@ -20,15 +25,15 @@ void printString(char* str) {
 	cout << endl;
 }
 
-float fitnessFunc(char* bitString) {
-	float bitValue = 0.0;
+double fitnessFunc(char* bitString) {
+	double bitValue = 0.0;
 	for (int i = 0; i < 22; i++) {
 		//cout << bitString[i];
 		bitValue += (bitString[21 - i] - '0') * pow(2.0, i); // convert bit to its base 2 value
 	}
 	//cout << endl;
 	//cout << bitValue << endl;
-	float value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
+	double value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
 	//cout << value << endl;
 	return (sin(10*PI*value)*value + 1);                     // fitness value -> goal: find the max
 }
@@ -49,9 +54,9 @@ void crossOver(char* string1, char* string2) {
 	float fitVtempStr1 = fitnessFunc(tempStr1);
 	float fitVtempStr2 = fitnessFunc(tempStr2);
 
-	int rate = rand() % 10;
-	cout << "crossover rate: " << rate << endl;
-	if (rate > 1) {                                         // 80% chance to crossover
+	int rateC = rand() % 100;
+	//cout << "crossover rate: " << rateC << endl;
+	if (rateC < XOVER*100) {                                         // 80% chance to crossover
 		int numBits = rand() % 11 + 1;
 		//cout << "number of bits to crossover: " << numBits << endl;
 		int xoverPnt = rand() % (23 - numBits);
@@ -102,8 +107,20 @@ void crossOver(char* string1, char* string2) {
 	}
 }
 
+void mutation(){
+	for (int i = 0; i < POPUSIZE; i++){
+		for (int j = 0; j < 22; j++){
+			int rateM = rand() % 100;
+			cout << "mutation rate: " << rateM << endl;
+			if (rateM < MUTATION * 100){
+				population[i][j] = 1 - population[i][j];  // flip the bit
+			}
+		}
+	}
+}
+
+
 int main() {
-	vector<char*> population;
 	srand(time(NULL));
 
 	// **************First Generation************
@@ -138,37 +155,39 @@ int main() {
 			index = i;
 		}
 	}
-	cout << "Max output after generation 0: " << maxOutcome << " at " << index << endl;
+	cout << "Max output after generation 0: " << setprecision(7) << maxOutcome << " at " << index << endl;
 	float lastGenMax = maxOutcome;
 	int lastGenIndex = index;
 	//***********End First Generation******************
 
-	cout << "start crossover, input two strings are: " << endl;
-	printString(population[0]);
-	printString(population[1]);
-	crossOver(population[0], population[1]);
+	//cout << "start crossover, input two strings are: " << endl;
+	//printString(population[0]);
+	//printString(population[1]);
+	//crossOver(population[0], population[1]);
 
-	cout << "after crossover, strings in population: " << endl;
-	printString(population[0]);
-	printString(population[1]);
+	//cout << "after crossover, strings in population: " << endl;
+	//printString(population[0]);
+	//printString(population[1]);
 
 	// *********Start Offspring Generations*****************
 	int genCounter = 0;
 	
 	do {   
 		genCounter++;
-		for (int i = 0; i < (POPUSIZE-1); i+=2) {
+		lastGenMax = maxOutcome;
+		for (int i = 0; i < (POPUSIZE-1); i+=2) {                 // apply crossovers
 			crossOver(population[i], population[i+1]);
 		}
+		mutation();                                               // apply mutation
 		for (int i = 0; i < POPUSIZE; i++) {
 			if (fitnessFunc(population[i]) > maxOutcome) {
 				maxOutcome = fitnessFunc(population[i]);
 				index = i;
 			}
 		}
-		cout << "Max output after generation " << genCounter << ": " << maxOutcome << " at " << index << endl;
-	} while (((maxOutcome - lastGenMax) < 0 || (maxOutcome - lastGenMax) > 0.000001) && genCounter < 3000); // precision: 6 digits after decimal point
-	cout << "final output: " << maxOutcome << " at " << index << endl;
+		cout << "Max output after generation " << genCounter << ": " << setprecision(7) << maxOutcome << " at " << index << endl;
+	} while (((maxOutcome - lastGenMax) < 0 || (maxOutcome - lastGenMax) > 0.0000001) && genCounter < 3000); // precision: 6 digits after decimal point
+	cout << "final output: " << setprecision(6) << maxOutcome << " at " << index << endl;
 
 	//system("pause");
 	return 0;
