@@ -10,8 +10,8 @@ using namespace std;
 
 // Define some constants/parameter settings
 const float PI = 3.141593;
-const float XOVER = 0.8;
-const float MUTATION = 0.02;
+const float XOVER = 0.80;
+const float MUTATION = 0.01;
 const int POPUSIZE = 500;
 
 // Global Variable
@@ -25,15 +25,15 @@ void printString(char* str) {
 	cout << endl;
 }
 
-float fitnessFunc(char* bitString) {
-	float bitValue = 0.0;
+double fitnessFunc(char* bitString) {
+	double bitValue = 0.0;
 	for (int i = 0; i < 22; i++) {
 		//cout << bitString[i];
 		bitValue += (bitString[21 - i] - '0') * pow(2.0, i); // convert bit to its base 2 value
 	}
 	//cout << endl;
 	//cout << bitValue << endl;
-	float value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
+	double value = bitValue * 3 / (pow(2.0, 22) - 1) - 1.0;   // map base 2 value to value on [-1,2] 
 	//cout << value << endl;
 	return (sin(10*PI*value)*value + 1);                     // fitness value -> goal: find the max
 }
@@ -128,6 +128,8 @@ void mutation(){
 int main() {
 	srand(time(NULL));
 
+	double x;
+
 	// **************First Generation************
 	for (int j = 0; j < POPUSIZE; j++) {                    
 		char* temp;
@@ -160,9 +162,17 @@ int main() {
 			index = i;
 		}
 	}
-	cout << "Max output after generation 0: " << setprecision(7) << maxOutcome << " at " << index << endl;
+
+	double tempBitValue = 0.0;
+		for (int i = 0; i < 22; i++) {
+			tempBitValue += (population[index][21 - i] - '0') * pow(2.0, i); // convert bit to its base 2 value
+		}
+		x = tempBitValue * 3 / (pow(2.0, 22) - 1) - 1.0;
+
+	cout << "Max output after generation 0: " << setprecision(7) << maxOutcome << " at " << x << endl;
 	float lastGenMax = maxOutcome;
-	int lastGenIndex = index;
+	int lastGenX = x;
+	float lastGenInc = lastGenMax;
 	//***********End First Generation******************
 
 	//cout << "start crossover, input two strings are: " << endl;
@@ -179,9 +189,11 @@ int main() {
 	
 	do {   
 		genCounter++;
+		lastGenInc = maxOutcome - lastGenMax;
 		lastGenMax = maxOutcome;
-		for (int i = 0; i < (POPUSIZE-1); i+=2) {                 // apply crossovers
-			crossOver(population[i], population[i+1]);
+		lastGenX = x;
+		for (int i = 0; i < POPUSIZE; i++) {                 // apply crossovers
+			crossOver(population[i % POPUSIZE], population[(i+genCounter) % POPUSIZE]);
 		}
 		mutation();                                               // apply mutation
 		for (int i = 0; i < POPUSIZE; i++) {
@@ -190,10 +202,20 @@ int main() {
 				index = i;
 			}
 		}
-		cout << "Max output after generation " << genCounter << ": " << setprecision(7) << maxOutcome << " at " << index << endl;
-	} while (((maxOutcome - lastGenMax) < 0 || (maxOutcome - lastGenMax) > 0.0000001) && genCounter < 3000); // precision: 6 digits after decimal point
-	cout << "final output: " << setprecision(6) << maxOutcome << " at " << index << endl;
+		
+		double tempBitValue = 0.0;
+		for (int i = 0; i < 22; i++) {
+			tempBitValue += (population[index][21 - i] - '0') * pow(2.0, i); // convert bit to its base 2 value
+		}
+		x = tempBitValue * 3 / (pow(2.0, 22) - 1) - 1.0;
 
-	//system("pause");
+		cout << "Max output after generation " << genCounter << ": " << setprecision(7) << maxOutcome << " at " << x << endl;
+	
+	} while (((maxOutcome - lastGenMax) > 0.000001 || (lastGenX - x) > 0.1 || (lastGenX - x) < -0.1) && genCounter < 3000); // precision: 6 digits after decimal point
+	
+	cout << endl;	
+	cout << "final output: " << setprecision(7) << maxOutcome << " at " << x << endl;
+
+
 	return 0;
 }
